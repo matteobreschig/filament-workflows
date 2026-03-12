@@ -10,6 +10,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Resources\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
+use Monzer\FilamentWorkflows\WorkflowsPlugin;
 
 class ViewLogs extends Page implements HasForms
 {
@@ -73,5 +74,10 @@ class ViewLogs extends Page implements HasForms
                     ->readOnly(),
             ])
         ];
+    }
+
+    public static function canAccess(array $parameters = []): bool
+    {
+        return filament(app(WorkflowsPlugin::class)->getId())->isAuthorized();
     }
 }

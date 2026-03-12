@@ -11,6 +11,7 @@ use Monzer\FilamentWorkflows\Models\Workflow;
 use Monzer\FilamentWorkflows\Models\WorkflowGroup;
 use Monzer\FilamentWorkflows\Resources\WorkflowResource;
 use Filament\Resources\Pages\ListRecords;
+use Monzer\FilamentWorkflows\WorkflowsPlugin;
 
 class ListWorkflows extends ListRecords
 {
@@ -46,5 +47,10 @@ class ListWorkflows extends ListRecords
     public function getDefaultActiveTab(): string | int | null
     {
         return 'all';
+    }
+
+    public static function canAccess(array $parameters = []): bool
+    {
+        return filament(app(WorkflowsPlugin::class)->getId())->isAuthorized();
     }
 }

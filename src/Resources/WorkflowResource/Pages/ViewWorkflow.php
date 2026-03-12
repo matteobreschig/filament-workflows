@@ -8,6 +8,7 @@ use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
+use Monzer\FilamentWorkflows\WorkflowsPlugin;
 
 class ViewWorkflow extends ViewRecord
 {
@@ -35,5 +36,10 @@ class ViewWorkflow extends ViewRecord
                 ->color('danger')
                 ->url(fn() => WorkflowResource::getUrl('viewLogs', ['record' => $this->record->id])),
         ];
+    }
+
+    public static function canAccess(array $parameters = []): bool
+    {
+        return filament(app(WorkflowsPlugin::class)->getId())->isAuthorized();
     }
 }

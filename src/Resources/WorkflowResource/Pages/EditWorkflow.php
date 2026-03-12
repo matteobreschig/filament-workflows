@@ -9,6 +9,7 @@ use Monzer\FilamentWorkflows\Resources\WorkflowResource;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
+use Monzer\FilamentWorkflows\WorkflowsPlugin;
 
 class EditWorkflow extends EditRecord
 {
@@ -41,5 +42,10 @@ class EditWorkflow extends EditRecord
         $sub_heading = "#" . $this->record->description;
         $actions = implode(', ', str_replace('-', ' ', $this->record->actions->pluck('action')->toArray()));;
         return new HtmlString($sub_heading . "<br> <strong>$actions</strong");
+    }
+
+    public static function canAccess(array $parameters = []): bool
+    {
+        return filament(app(WorkflowsPlugin::class)->getId())->isAuthorized();
     }
 }
