@@ -3,6 +3,7 @@
 namespace Monzer\FilamentWorkflows\Utils;
 
 use Composer\InstalledVersions;
+use Exception;
 use Filament\Forms\Components\Component;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -10,9 +11,12 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Monzer\FilamentWorkflows\Contracts\Action;
 use Monzer\FilamentWorkflows\Models\Workflow;
 use Monzer\FilamentWorkflows\Traits\TrackWorkflowModelEvents;
+use ReflectionClass;
+use ReflectionMethod;
 
 class Utils
 {
@@ -28,7 +32,7 @@ class Utils
     {
         $data = [];
         foreach (self::getActions() as $act) {
-            $action = app()->make($act);
+            $action                 = app()->make($act);
             $data[$action->getId()] = $action->getName();
         }
         return $data;
@@ -48,16 +52,16 @@ class Utils
 
     public static function log(Workflow $workflow, $log): bool
     {
-        $logs = $workflow->logs ?? [];
+        $logs   = $workflow->logs ?? [];
         $logs[] = $log;
-        
+
         // Implement log rotation to prevent database overflow
         $maxLogEntries = config('workflows.max_log_entries', 100);
         if ($maxLogEntries !== null && count($logs) > $maxLogEntries) {
             // Keep only the most recent entries
             $logs = array_slice($logs, -$maxLogEntries);
         }
-        
+
         return $workflow->update(['logs' => $logs]);
     }
 
@@ -74,15 +78,15 @@ class Utils
     public static function getNotifiableRelations(string $modelClass): array
     {
         if (!is_subclass_of($modelClass, Model::class)) {
-            throw new \InvalidArgumentException("Class {$modelClass} must be a Laravel Model");
+            throw new InvalidArgumentException("Class {$modelClass} must be a Laravel Model");
         }
 
         $notifiableRelations = [];
-        $model = new $modelClass();
+        $model               = new $modelClass();
 
         // Get all public methods
-        $reflector = new \ReflectionClass($modelClass);
-        $methods = $reflector->getMethods(\ReflectionMethod::IS_PUBLIC);
+        $reflector = new ReflectionClass($modelClass);
+        $methods   = $reflector->getMethods(ReflectionMethod::IS_PUBLIC);
 
         foreach ($methods as $method) {
             // Skip methods with parameters
@@ -118,7 +122,7 @@ class Utils
                 if (in_array(Notifiable::class, class_uses_recursive($relatedClass))) {
                     $notifiableRelations[$method->getName()] = class_basename($relatedClass) . "->" . $method->getName();
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Skip any errors and continue with next method
                 continue;
             }
@@ -129,9 +133,9 @@ class Utils
     protected static function getModelRelations(Model $model): array
     {
         $relations = [];
-        $reflector = new \ReflectionClass($model);
+        $reflector = new ReflectionClass($model);
 
-        foreach ($reflector->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+        foreach ($reflector->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             // Skip methods that have parameters
             if ($method->getNumberOfParameters() > 0) {
                 continue;
@@ -153,7 +157,7 @@ class Utils
                         $relations[$method->getName()] = get_class($result);
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 continue; // Skip if there's an error
             }
         }
@@ -163,7 +167,7 @@ class Utils
 
     public static function listTriggers($asSelect = true): array
     {
-        $data = [];
+        $data                                               = [];
         $models_that_uses_track_workflow_model_events_trait = self::listModelsThatUses(TrackWorkflowModelEvents::class);
 
         if ($asSelect) {
@@ -178,16 +182,17 @@ class Utils
 
     public static function listEvents($forSelect = true): array
     {
-        if (!file_exists(app_path() . "/Events"))
+        if (!file_exists(app_path() . "/Events")) {
             return [];
+        }
 
-        $data = [];
+        $data    = [];
         $classes = [];
         foreach (scandir(app_path() . "/Events") as $file) {
             if (Str::endsWith($file, '.php')) {
-                $class = "App/Events/$file";
-                $class = Str::replace(['../', '.php'], '', $class);
-                $class = Str::replace(['/'], "\\", $class);
+                $class     = "App/Events/$file";
+                $class     = Str::replace(['../', '.php'], '', $class);
+                $class     = Str::replace(['/'], "\\", $class);
                 $classes[] = $class;
             }
         }
@@ -205,7 +210,7 @@ class Utils
 
     public static function listModelsThatUses($trait): array
     {
-        $classes = [];
+        $classes          = [];
         $modelDirectories = config('workflows.models_directory', ['App\\Models']);
 
         foreach ($modelDirectories as $directory) {
@@ -238,9 +243,8 @@ class Utils
             // If it's a directory, recursively scan it
             if (is_dir($fullPath)) {
                 $subNamespace = $namespace . '\\' . $item;
-                $classes = array_merge($classes, self::scanDirectoryRecursively($fullPath, $subNamespace, $trait));
-            }
-            // If it's a PHP file, check if it uses the trait
+                $classes      = array_merge($classes, self::scanDirectoryRecursively($fullPath, $subNamespace, $trait));
+            } // If it's a PHP file, check if it uses the trait
             elseif (Str::endsWith($item, '.php')) {
                 $className = $namespace . '\\' . basename($item, '.php');
 
@@ -252,6 +256,7 @@ class Utils
 
         return $classes;
     }
+
     public static function getTriggerAttributes($trigger_class, $asSelect = true, $withMutated = false): array
     {
         $model = new ($trigger_class);
@@ -260,8 +265,9 @@ class Utils
 
 //        $attributes = array_diff($attributes, self::$hide_trigger_attributes);
 
-        if ($withMutated)
+        if ($withMutated) {
             $attributes = array_merge($attributes, self::getModelMutatedAttributes($trigger_class));
+        }
 
         if ($asSelect) {
             $attributes = array_combine(array_values($attributes), array_values($attributes));
@@ -269,7 +275,7 @@ class Utils
                 if (method_exists($trigger_class, 'getAttributeName') && ($defaultAttributeName = $trigger_class::getAttributeName($key))) {
                     $attributes[$key] = $defaultAttributeName;
                 } else {
-                    $mutated = self::isModelAttributeMutated($trigger_class, $key) ? "- " : "";
+                    $mutated          = self::isModelAttributeMutated($trigger_class, $key) ? "- " : "";
                     $attributes[$key] = str($mutated . $value)->replace('_', ' ')->ucfirst()->title()->value();
                 }
             }
@@ -294,7 +300,7 @@ class Utils
         if ($ignoreException) {
             try {
                 return Schema::getColumnType($table, $column);
-            } catch (\Exception $exception) {
+            } catch (Exception $exception) {
                 return null;
             }
         }
@@ -303,8 +309,9 @@ class Utils
 
     public static function getModelAttributesSuggestions($model_class): array|null
     {
-        if (blank($model_class))
+        if (blank($model_class)) {
             return null;
+        }
 
         $data = [];
 
@@ -355,16 +362,18 @@ class Utils
             preg_match('~@(.*?)@~', $segment, $output);
             if (array_key_exists(1, $output)) {
                 //index 0 = @no@, index 1 = no, index 0 = @relation->attribute@, index 1 = relation->attribute
-                if (array_key_exists(0, $output) and array_key_exists(1, $output))
+                if (array_key_exists(0, $output) and array_key_exists(1, $output)) {
                     if (str($output[1])->contains('->')) {
                         $relation_attribute_arr = explode('->', $output[1]);
-                        $data = str($data)->replace($output[0], $model->{$relation_attribute_arr[0]}->{$relation_attribute_arr[1]})->value();
+                        $data                   = str($data)->replace($output[0],
+                            $model->{$relation_attribute_arr[0]}->{$relation_attribute_arr[1]})->value();
                     } elseif (str($output[1])->contains('()')) {
                         $method = str($output[1])->remove('()')->value();
-                        $data = str($data)->replace($output[0], $model->{$method}())->value();
+                        $data   = str($data)->replace($output[0], $model->{$method}())->value();
                     } else {
                         $data = str($data)->replace($output[0], $model->{$output[1]})->value();
                     }
+                }
             }
         }
         return $data;
@@ -382,8 +391,9 @@ class Utils
 
             $attributeChanged = array_key_exists($workflow->model_attribute, $model_changes);
 
-            if (!$attributeChanged)
+            if (!$attributeChanged) {
                 return false;
+            }
         }
 
         if ($workflow->condition_type == Workflow::CONDITION_TYPE_NO_CONDITION_IS_REQUIRED and $workflow->conditions->isEmpty()) {
@@ -430,7 +440,7 @@ class Utils
             }
 
             if (!$conditions_results[count($conditions_results) - 1]) {
-                throw new \Exception("Condition '$condition->model_attribute' did not met.");
+                throw new Exception("Condition '$condition->model_attribute' did not met.");
             }
         }
 

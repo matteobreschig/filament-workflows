@@ -1,14 +1,14 @@
 <?php
 
-namespace Monzer\FilamentWorkflows\Resources\WorkflowResource\Pages;
+namespace Monzer\FilamentWorkflows\Resources\Workflow\Pages;
 
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
-use Illuminate\Validation\ValidationException;
-use Monzer\FilamentWorkflows\Resources\WorkflowResource;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
+use Illuminate\Validation\ValidationException;
+use Monzer\FilamentWorkflows\Resources\Workflow\WorkflowResource;
 use Monzer\FilamentWorkflows\WorkflowsPlugin;
 
 class EditWorkflow extends EditRecord
@@ -18,18 +18,19 @@ class EditWorkflow extends EditRecord
     protected function onValidationError(ValidationException $exception): void
     {
         Notification::make()
-            ->title($exception->getMessage())
-            ->danger()
-            ->send();
+                    ->title($exception->getMessage())
+                    ->danger()
+                    ->send();
     }
-    protected function getActions(): array
+
+    protected function getHeaderActions(): array
     {
-        return array_merge([
-           Action::make('view_logs')
-               ->label(__('filament-workflows::workflows.view_logs'))
-               ->color('danger')
-                ->url(fn() => WorkflowResource::getUrl('viewLogs', ['record' => $this->record->id])),
-        ]);
+        return [
+            Action::make('view_logs')
+                  ->label(__('filament-workflows::workflows.view_logs'))
+                  ->color('danger')
+                  ->url(fn() => WorkflowResource::getUrl('viewLogs', ['record' => $this->record->id])),
+        ];
     }
 
     public function getHeading(): string|Htmlable
@@ -40,8 +41,8 @@ class EditWorkflow extends EditRecord
     public function getSubheading(): string|Htmlable|null
     {
         $sub_heading = "#" . $this->record->description;
-        $actions = implode(', ', str_replace('-', ' ', $this->record->actions->pluck('action')->toArray()));;
-        return new HtmlString($sub_heading . "<br> <strong>$actions</strong");
+        $actions     = implode(', ', str_replace('-', ' ', $this->record->actions->pluck('action')->toArray()));
+        return new HtmlString($sub_heading . "<br> <strong>$actions</strong>");
     }
 
     public static function canAccess(array $parameters = []): bool
