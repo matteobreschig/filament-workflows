@@ -8,7 +8,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Monzer\FilamentWorkflows\Models\Workflow;
 use Monzer\FilamentWorkflows\Models\WorkflowGroup;
-use Monzer\FilamentWorkflows\Resources\WorkflowResource;
+use Monzer\FilamentWorkflows\Resources\Workflow\WorkflowResource;
 use Monzer\FilamentWorkflows\WorkflowsPlugin;
 
 class ListWorkflows extends ListRecords
