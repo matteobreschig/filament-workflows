@@ -30,16 +30,16 @@ class ListWorkflows extends ListRecords
 
         foreach ($groups as $group) {
             $data[$group->name] = Tab::make(str($group->name)->title())
-                                     ->modifyQueryUsing(fn(Builder $query) => $query->where('workflow_group_id',
-                                         $group->id))
-                                     ->badge(Workflow::query()->where('workflow_group_id', $group->id)->count())
-                                     ->badgeColor('success');
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('workflow_group_id',
+                    $group->id))
+                ->badge(Workflow::query()->where('workflow_group_id', $group->id)->count())
+                ->badgeColor('success');
         }
         return array_merge(
             [
                 'all' => Tab::make(__('filament-workflows::workflows.sections.grouping.all'))
-                            ->badge(Workflow::count())
-                            ->badgeColor('success')
+                    ->badge(Workflow::count())
+                    ->badgeColor('success')
             ], $data);
     }
 

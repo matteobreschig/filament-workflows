@@ -3,9 +3,11 @@
 namespace Monzer\FilamentWorkflows\Resources\Workflow\Pages;
 
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Resources\Pages\Page;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
 use Monzer\FilamentWorkflows\WorkflowsPlugin;
@@ -15,6 +17,8 @@ use Route;
 
 class ViewLogs extends Page implements HasForms
 {
+    use InteractsWithForms;
+
     protected static string $resource = WorkflowResource::class;
 
     protected string $view = 'filament-workflows::view-logs';
@@ -58,25 +62,27 @@ class ViewLogs extends Page implements HasForms
 
     }
 
-    protected function getFormSchema(): array
+    public function form(Schema $schema): Schema
     {
-        return [
-            Section::make([
-                Textarea::make('logs')
-                        ->rows(10)
-                        ->cols(10)
-                        ->id('logs')
-                        ->extraInputAttributes(['style' => 'color:#2a3ec5;'])
-                        ->readOnly(),
+        return $schema
+            ->components([
+                Section::make()
+                    ->schema([
+                        Textarea::make('logs')
+                            ->rows(10)
+                            ->cols(10)
+                            ->id('logs')
+                            ->extraInputAttributes(['style' => 'color:#2a3ec5;'])
+                            ->readOnly(),
 
-                Textarea::make('execution_logs')
-                        ->rows(10)
-                        ->cols(10)
-                        ->id('execution_logs')
-                        ->extraInputAttributes(['style' => 'color:#2a3ec5;'])
-                        ->readOnly(),
-            ])
-        ];
+                        Textarea::make('execution_logs')
+                            ->rows(10)
+                            ->cols(10)
+                            ->id('execution_logs')
+                            ->extraInputAttributes(['style' => 'color:#2a3ec5;'])
+                            ->readOnly(),
+                    ]),
+            ]);
     }
 
     public static function canAccess(array $parameters = []): bool

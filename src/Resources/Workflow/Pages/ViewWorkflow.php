@@ -27,14 +27,14 @@ class ViewWorkflow extends ViewRecord
         return new HtmlString($sub_heading . "<br> <strong>$actions</strong");
     }
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             EditAction::make(),
-            Action::make()::make('view_logs')
-                  ->label(__('filament-workflows::workflows.view_logs'))
-                  ->color('danger')
-                  ->url(fn() => WorkflowResource::getUrl('viewLogs', ['record' => $this->record->id])),
+            Action::make('view_logs')
+                ->label(__('filament-workflows::workflows.view_logs'))
+                ->color('danger')
+                ->url(fn() => WorkflowResource::getUrl('viewLogs', ['record' => $this->record->id])),
         ];
     }
 
