@@ -4,15 +4,18 @@
 
 </x-filament::page>
 
+@script
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        console.log('DOMContentLoaded.load')
-        setTimeout(function (){
-            var logs = document.getElementById('logs');
-            logs.scrollTop = logs.scrollHeight;
+    const scrollToBottom = (id) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.scrollTop = el.scrollHeight;
+        }
+    };
 
-            var execution_logs = document.getElementById('execution_logs');
-            execution_logs.scrollTop = execution_logs.scrollHeight;
-        }, 200)
-    });
+    setTimeout(() => {
+        scrollToBottom('logs');
+        scrollToBottom('execution_logs');
+    }, 200);
 </script>
+@endscript

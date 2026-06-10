@@ -21,7 +21,7 @@
         }
     ],
     "require": {
-        "filament/support": "^4.0"
+        "filament/support": "^4.0|^5.0"
     },
     "extra": {
         "laravel": {
